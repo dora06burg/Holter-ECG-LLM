@@ -1,0 +1,32 @@
+Commands used for the extra Q-beat demo (segment 45)
+====================================================
+
+Sender (stream WFDB -> LSL, only segment 45):
+
+python ECG_Model/code_for_stream/sender_icentia_lsl.py \
+  --dataset ECG_Model/dataset \
+  --patient 0 \
+  --segment-start 45 --segment-end 45 \
+  --fs-out 250 \
+  --chunk-ms 200 \
+  --speed 20 \
+  --max-seconds 30 \
+  --verbose
+
+Receiver (LSL -> WFDB windows, 3 windows of 10s):
+
+python ECG_Model/code_for_stream/receiver_lsl_to_wfdb.py \
+  --out-dir ECG_Model/stream_result/run_20260209_163829/wfdb_250Hz_qdemo_seg45 \
+  --window-sec 10 --hop-sec 10 \
+  --inject-rhythm-state \
+  --max-windows 3 \
+  --verbose
+
+Plot (WFDB windows -> PNG):
+
+python ECG_Model/code_for_stream/plot_wfdb_windows.py \
+  --wfdb-dir ECG_Model/stream_result/run_20260209_163829/wfdb_250Hz_qdemo_seg45 \
+  --out-dir ECG_Model/stream_result/run_20260209_163829/report/assets/qdemo_seg45 \
+  --summary-n 3 \
+  --dpi 150
+
