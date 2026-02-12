@@ -1,0 +1,9 @@
+stream_p00000_000046 1 250 150000
+stream_p00000_000046.dat 16 1000.0(0)/mV 16 0 -13 53123 0 ecg
+# global_start_sample=6900000
+# fs=250.0
+# source=LSL
+# source_record_at_start=p00000_s06
+# source_segment_id_at_start=6
+# dataset_root=/mnt/e/2025grade3/code/ECG_Model/dataset/Icentia11k
+# patient_id=p00000

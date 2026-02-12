@@ -1,0 +1,56 @@
+graph TD
+    %% ==========================================
+    %% 1. 数据流层 (顶部)
+    %% ==========================================
+    subgraph Data_Layer ["Data & Splitting"]
+        %% style Data_Layer fill:#f9f9f9,stroke:#333,stroke-width:2px
+        
+        Raw["main_train.py / trainer.py <br> 读取与调度 24h 数据"] --> Stream
+        
+        Stream["stream.py <br> 长时趋势区间 Minutes"] 
+        Stream -- 调用 --> Pre["preprocess.py <br> 归一化"]
+        
+        Stream --> Splitter["splitter.py <br> 心搏级 Beat-level"]
+    end
+
+    %% ==========================================
+    %% 2. 异常评估层 (中部左侧)
+    %% ==========================================
+    subgraph Anomaly_Layer ["Anomaly Assessment"]
+        %% style Anomaly_Layer fill:#fff5f5,stroke:#f66,stroke-width:2px
+        
+        Splitter -- 输入心搏 --> AE["abnormality.py <br> AutoEncoder"]
+        AE -- 计算重构误差 --> Score("重要性得分 Importance")
+    end
+
+    %% ==========================================
+    %% 3. 层次化编码层 (中部核心)
+    %% ==========================================
+    subgraph Hierarchical_Block ["hierarchical.py"]
+        %% style Hierarchical_Block fill:#e6f3ff,stroke:#33f,stroke-width:2px
+        
+        Splitter -- 输入心搏 --> Local["local_inception.py <br> 局部形态 Encoder"]
+        Local -- 局部特征 --> Global["global_ssm.py <br> 全局节律 Encoder"]
+        
+        %% 关键的虚线连接 (Gating)
+        Score -.-> |Gating 加权| Global
+    end
+
+    %% ==========================================
+    %% 4. 对齐与输出层 (底部)
+    %% ==========================================
+    subgraph Output_Layer ["Alignment & LLM"]
+        %% style Output_Layer fill:#f0fff0,stroke:#393,stroke-width:2px
+        
+        Global --> Emb("ECG Embedding")
+        Emb --> Reprogram["reprogram.py <br> Reprogramming & Tokenization"]
+        
+        Reprogram --> Semantic("语义 Tokens")
+        
+        %% Loss 部分 (Stage 2 特有)
+        Semantic -.-> Loss["loss.py <br> InfoNCE Loss"]
+        Text["文本标签"] -.-> Loss
+    end
+
+    %% 布局调整连接
+    trainer["trainer.py <br> 流式训练引擎"] -.-> |控制全流程| Loss

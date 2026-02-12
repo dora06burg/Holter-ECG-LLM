@@ -1,0 +1,5 @@
+$ python /mnt/e/2025grade3/code/ECG_Model/code_for_stream/plot_wfdb_windows.py --wfdb-dir /mnt/e/2025grade3/code/ECG_Model/stream_result/run_20260210_092709/wfdb_250Hz --out-dir /mnt/e/2025grade3/code/ECG_Model/stream_result/run_20260210_092709/report/assets/250Hz --summary-n 3 --dpi 150
+
+/home/chw/software/miniconda3/envs/shumo/lib/python3.10/site-packages/numpy/_core/getlimits.py:551: UserWarning: Signature b'\x00\xd0\xcc\xcc\xcc\xcc\xcc\xcc\xfb\xbf\x00\x00\x00\x00\x00\x00' for <class 'numpy.longdouble'> does not match any known type: falling back to type probe function.
+This warnings indicates broken support for the dtype!
+  machar = _get_machar(dtype)

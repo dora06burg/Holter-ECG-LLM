@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LSL Live ECG</title>
+    <style>
+      body { margin: 0; font-family: sans-serif; background: #111; color: #eee; }
+      .bar { padding: 10px 12px; font-size: 14px; opacity: 0.9; }
+      img { display: block; width: 100%; height: auto; }
+      a { color: #9cf; }
+    </style>
+  </head>
+  <body>
+    <div class="bar">
+      LSL Live ECG (auto-refresh 200ms) · Image: <code>lsl_live.png</code>
+    </div>
+    <img id="img" alt="live ecg" />
+    <script>
+      const img = document.getElementById('img');
+      function tick() {
+        img.src = 'lsl_live.png?ts=' + Date.now();
+      }
+      tick();
+      setInterval(tick, 200);
+    </script>
+  </body>
+</html>
