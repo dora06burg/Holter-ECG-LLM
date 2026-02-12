@@ -3,23 +3,34 @@ import torch
 import torch.nn as nn
 
 class ECGReprogrammer(nn.Module):
+    """
+    跨模态重编程层 / 投影层 (Cross-modal Reprogrammer / Projector)。
+    对应架构图中的【Reprogramming & ECG Tokenization】。
+    
+    作用：
+    将纯数学的 ECG 特征向量，非线性映射到大语言模型 (LLM) 的
+    语义嵌入空间 (Semantic Embedding Space)，使其成为 Visual Tokens。
+    """
     def __init__(self, ecg_dim, llm_dim, hidden_dim=None):
         super().__init__()
         # 默认隐藏层维度扩大一倍，给予模型更充足的映射空间
         if hidden_dim is None:
             hidden_dim = ecg_dim * 2
 
-        # 摒弃单层 Linear，使用经典的 Projector 结构
+        # 摒弃单层 Linear，使用经典的 MLP Projector 结构 (参考 LLaVA/CLIP)
         self.proj = nn.Sequential(
-            nn.Linear(ecg_dim, hidden_dim),
-            nn.GELU(),                  # 引入非线性，这对于跨模态极其重要
-            nn.LayerNorm(hidden_dim),   # 稳定数值分布，防止在输入给 LLM 时造成梯度爆炸
-            nn.Linear(hidden_dim, llm_dim)
+            nn.Linear(ecg_dim, hidden_dim), # 升维
+            nn.GELU(),                      # 引入非线性激活，这对于跨模态极其重要
+            nn.LayerNorm(hidden_dim),       # 稳定数值分布，防止在输入给 LLM 时造成梯度爆炸
+            nn.Linear(hidden_dim, llm_dim)  # 映射到 LLM 的 Embedding 维度 (如 4096)
         )
 
     def forward(self, x):
         """
-        x: [B, Seq_len, ecg_dim] (Mamba 吐出来的心电特征)
-        返回: [B, Seq_len, llm_dim] (可以直接喂给 LLM 的虚拟 Token)
+        Args:
+            x: [B, Seq_len, ecg_dim] (Mamba 吐出来的心电特征)
+            
+        Returns:
+            [B, Seq_len, llm_dim] (可以直接喂给 LLM 的虚拟 Token)
         """
         return self.proj(x)
