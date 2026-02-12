@@ -3,27 +3,52 @@ import wfdb
 import os
 from glob import glob
 from tqdm import tqdm
-from D.hierarchical import HierarchicalECGEncoder
+from structure.hierarchical import HierarchicalECGEncoder
 from structure.abnormality import LSTMAutoEncoder, AbnormalityScorer
+from structure.reprogram import ECGReprogrammer
+from training.loss import InfoNCELoss
 from training.trainer import StreamingTrainer
 from utils.logger import get_logger
 
-# model
-encoder = HierarchicalECGEncoder(emb_dim=128)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# anomaly scorer
-ae = LSTMAutoEncoder()
+# ================= 1. 实例化所有网络组件并移至 GPU =================
+encoder = HierarchicalECGEncoder(emb_dim=128).to(device)
+reprogrammer = ECGReprogrammer(ecg_dim=128, llm_dim=768).to(device)
+contrastive_loss = InfoNCELoss(initial_temp=0.07).to(device)
+
+ae = LSTMAutoEncoder().to(device)
 scorer = AbnormalityScorer(ae)
 
-optimizer = torch.optim.Adam(encoder.parameters(), lr=1e-4)
+# ================= 2. 构造 Dummy Text Encoder (用于占位测试) =================
+class DummyTextEncoder(torch.nn.Module):
+    def forward(self, text):
+        # 无论输入什么文本，都返回一个随机的 768 维特征模拟大模型 Token
+        # 实际工程中，这里将被替换为真实的 PubMedBERT 等模型
+        return torch.randn(1, 768).to(device)
+
+text_encoder = DummyTextEncoder()
+
+# ================= 3. 将所有需要训练的参数打包交给 Optimizer =================
+params_to_optimize = (
+    list(encoder.parameters()) + 
+    list(reprogrammer.parameters()) + 
+    list(contrastive_loss.parameters())
+)
+optimizer = torch.optim.Adam(params_to_optimize, lr=1e-4)
+
 writer = get_logger("runs/stream_ecg")
 
+# ================= 4. 实例化 Trainer =================
 trainer = StreamingTrainer(
     model=encoder,
     scorer=scorer,
     optimizer=optimizer,
     fs=128,
-    writer=writer
+    writer=writer,
+    text_encoder=text_encoder,        # 传入假的文本编码器
+    reprogrammer=reprogrammer,        # 传入翻译官
+    contrastive_loss=contrastive_loss # 传入 Loss 函数
 )
 
 class LTAFDBLoader:
@@ -123,8 +148,25 @@ class LTAFDBLoader:
 
 data_dir = "ltafdb"
 loader = LTAFDBLoader(data_dir)
-all_ecg_records = loader.load_all_records()
+record_names = loader.get_all_record_names()
 
-for record in all_ecg_records:
+for record_name in record_names:
+    print(f"\nProcessing Record: {record_name}")
+    # 每次只读一条进内存
+    record = loader.load_single_record(record_name)
+
+    if record is None:
+        print(f"[{record_name}] 加载失败，跳过。")
+        continue
+        
     ecg = record["signals"][:, 0]
+    total_points = len(ecg)
+    print(f"[{record_name}] 加载完成！总数据点: {total_points}。启动流式训练...")
+    
+    # 这里会触发 trainer.py 里面的 tqdm 进度条
     trainer.train_record(ecg)
+    
+    print(f"[{record_name}] 训练完毕！正在清理内存...")
+    # 极其关键：释放内存，防止内存泄漏
+    del record
+    del ecg
