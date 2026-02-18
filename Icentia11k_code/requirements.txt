@@ -1,0 +1,5 @@
+numpy>=1.21
+matplotlib>=3.5
+wfdb>=4.0.0
+scipy>=1.8
+pylsl>=1.18.0
