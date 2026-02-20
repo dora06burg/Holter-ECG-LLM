@@ -1,0 +1,18 @@
+stream_000003 12 250 150000
+stream_000003.dat 16 1000.0(0)/mV 16 0 13 27471 0 I
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 II
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 III
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 aVR
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 aVL
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 aVF
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 V1
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 V2
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 V3
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 V4
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 V5
+stream_000003.dat 16 1000.0(0)/mV 16 0 0 0 0 V6
+# global_start_sample=450000
+# fs=250.0
+# lead_order=I,II,III,aVR,aVL,aVF,V1,V2,V3,V4,V5,V6
+# lead_mask=1,1,1,1,1,1,1,1,1,1,1,1
+# source=LSL
